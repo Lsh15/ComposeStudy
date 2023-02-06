@@ -30,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
@@ -37,6 +39,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.composetest.ui.theme.ComposeTestTheme
 import kotlin.random.Random
 
@@ -54,7 +61,8 @@ class MainActivity : ComponentActivity() {
 //                    Greeting("Android")
 //                    Container()
 //                    VerticalContainer()
-                    TextFieldTest()
+//                    TextFieldTest()
+                    NavigationGraph()
                 }
             }
         }
@@ -406,7 +414,7 @@ fun MyCustomCheckBox(title: String, withRipple: Boolean = false){
 //            .background(Color.Yellow)
                 .clickable(
                     indication = rippleEffect,
-                    interactionSource = remember{ MutableInteractionSource() }
+                    interactionSource = remember { MutableInteractionSource() }
                 ) {
                     setIsChecked.invoke(!isChecked)
                     Log.d("TAG", "MyCustomCheckBox: 클릭이 되었다! / $isChecked")
@@ -505,6 +513,164 @@ fun TextFieldTest(){
     }
 }
 
+// 네비게이션 라우트 이넘 (값을 가지는 이넘)
+enum class NAV_ROUTE(val routeName: String, val description: String, val btnColor: Color){
+    MAIN("MAIN", "메인 화면", Color(0xFF3949AB)),
+    LOGIN("LOGIN", "로그인 화면", Color(0xFF5E35B1)),
+    REGISTER("REGISTER", "회원가입 화면", Color(0xFFD81B60)),
+    USER_PROFILE("USER_PROFILE", "유저 프로필 화면", Color(0xFF00897B)),
+    SETTING("SETTING", "설정 화면", Color(0xFFF4511E))
+}
+
+// 네비게이션 라우트 액션
+class RouteAction(navHostController: NavHostController) {
+
+    //라투어로 이동
+    val navTo: (NAV_ROUTE) -> Unit = { route ->
+        navHostController.navigate(route.routeName)
+    }
+
+    // 뒤로가기 이동
+    val goBack: () -> Unit = {
+        navHostController.navigateUp()
+    }
+}
+
+@Composable
+fun NavigationGraph(startRoute: NAV_ROUTE = NAV_ROUTE.MAIN){
+    // 네비게이션 컨트롤러
+    val navController = rememberNavController()
+
+    // 네비게이션 라우트 액션
+    val routeAction = remember(navController) { RouteAction(navController) }
+
+    // NavHost 로 네비게이션 결정
+    // 네비게이션 연결할 녀석들을 설정한다
+    NavHost(navController, startRoute.routeName){
+        // 라우트 이름 = 화면의 키
+        composable(NAV_ROUTE.MAIN.routeName){
+            // 화면 = 값
+            MainScreen(routeAction = routeAction)
+        }
+        // 라우트 이름 = 화면의 키
+        composable(NAV_ROUTE.LOGIN.routeName){
+            // 화면 = 값
+            LoginScreen(routeAction = routeAction)
+        }
+        // 라우트 이름 = 화면의 키
+        composable(NAV_ROUTE.REGISTER.routeName){
+            // 화면 = 값
+            RegisterScreen(routeAction = routeAction)
+        }
+        // 라우트 이름 = 화면의 키
+        composable(NAV_ROUTE.USER_PROFILE.routeName){
+            // 화면 = 값
+            UserProfileScreen(routeAction = routeAction)
+        }
+        // 라우트 이름 = 화면의 키
+        composable(NAV_ROUTE.SETTING.routeName){
+            // 화면 = 값
+            SettingScreen(routeAction = routeAction)
+        }
+    }
+}
+
+// 메인 화면
+@Composable
+fun MainScreen(routeAction: RouteAction){
+    Surface(modifier = Modifier.fillMaxSize()) {
+        Column(Modifier.padding(16.dp)) {
+            NavButton(route = NAV_ROUTE.LOGIN, routeAction = routeAction)
+            NavButton(route = NAV_ROUTE.REGISTER, routeAction = routeAction)
+            NavButton(route = NAV_ROUTE.USER_PROFILE, routeAction = routeAction)
+            NavButton(route = NAV_ROUTE.SETTING, routeAction = routeAction)
+        }
+    }
+}
+// 로그인 화면
+@Composable
+fun LoginScreen(routeAction: RouteAction){
+    Surface(Modifier.fillMaxSize()) {
+        Box(Modifier.padding(8.dp), Alignment.Center){
+            Text(text = "로그인 화면", style = TextStyle(Color.Black, 22.sp, FontWeight.Medium))
+            // 뒤로가기 버튼
+            Button(onClick = routeAction.goBack,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .offset(y = 100.dp)) {
+                Text("뒤로가기")
+            }
+        }
+    }
+}
+
+// 회원가입 화면
+@Composable
+fun RegisterScreen(routeAction: RouteAction){
+    Surface(Modifier.fillMaxSize()) {
+        Box(Modifier.padding(8.dp), Alignment.Center){
+            Text(text = "회원가입 화면", style = TextStyle(Color.Black, 22.sp, FontWeight.Medium))
+            // 뒤로가기 버튼
+            Button(onClick = routeAction.goBack,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .offset(y = 100.dp)) {
+                Text("뒤로가기")
+            }
+        }
+    }
+}
+
+// 유저 프로필 화면
+@Composable
+fun UserProfileScreen(routeAction: RouteAction){
+    Surface(Modifier.fillMaxSize()) {
+        Box(Modifier.padding(8.dp), Alignment.Center){
+            Text(text = "유저 프로필 화면", style = TextStyle(Color.Black, 22.sp, FontWeight.Medium))
+            // 뒤로가기 버튼
+            Button(onClick = routeAction.goBack,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .offset(y = 100.dp)) {
+                Text("뒤로가기")
+            }
+        }
+    }
+}
+
+// 설정 화면
+@Composable
+fun SettingScreen(routeAction: RouteAction){
+    Surface(Modifier.fillMaxSize()) {
+        Box(Modifier.padding(8.dp), Alignment.Center){
+            Text(text = "설정 화면", style = TextStyle(Color.Black, 22.sp, FontWeight.Medium))
+            // 뒤로가기 버튼
+            Button(onClick = routeAction.goBack,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .offset(y = 100.dp)) {
+                Text("뒤로가기")
+            }
+        }
+    }
+}
+
+// 콜럼에 있는 네비게이션 버튼
+@Composable
+fun ColumnScope.NavButton(route: NAV_ROUTE, routeAction: RouteAction){
+    Button(onClick = {
+        routeAction.navTo(route)
+    },colors = ButtonDefaults.buttonColors(backgroundColor = route.btnColor),
+        modifier = Modifier
+            .weight(1f)
+            .padding(8.dp)
+            .fillMaxSize()
+    ) {
+        Text(text = route.description,
+            style = TextStyle(Color.White, 22.sp, FontWeight.Medium)
+        )
+    }
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
@@ -513,7 +679,6 @@ fun DefaultPreview() {
     ComposeTestTheme {
 //        VerticalContainer()
 //        Container()
-//        Greeting("Android")
-        TextFieldTest()
+        NavigationGraph()
     }
 }
